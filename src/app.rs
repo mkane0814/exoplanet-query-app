@@ -16,7 +16,7 @@ pub fn App(cx: Scope) -> impl IntoView {
         <Stylesheet id="leptos" href="/pkg/leptos_start.css"/>
         <div class="bg"></div>
         // sets the document title
-        <Title text="Welcome to stuff!"/>
+  <Title text="Welcome to stuff!"/>
         <InputArea/>
     }
 }
@@ -26,6 +26,12 @@ type InputHolder = Vec<(usize, (ReadSignal<Input>, WriteSignal<Input>))>;
 #[derive(Clone, Copy)]
 struct InputUpdater {
     set_input_objects: WriteSignal<InputHolder>,
+}
+
+#[derive(Clone, Copy)]
+pub struct Item {
+    pub id: &'static str,
+    pub value: &'static str,
 }
 
 #[component]
@@ -39,12 +45,7 @@ pub fn InputArea(cx: Scope) -> impl IntoView {
 
     let (input_objects, set_input_objects) = create_signal(cx, initial_inputs);
 
-    provide_context(
-        cx,
-        InputUpdater {
-            set_input_objects,
-        },
-    );
+    provide_context(cx, InputUpdater { set_input_objects });
 
     let add_input = move |_| {
         let sig = create_signal(cx, Input::new());
@@ -84,79 +85,174 @@ pub fn InputRow(
     writer: WriteSignal<Input>,
 ) -> impl IntoView {
     let initial_fields = vec![
-        ("pl_name", "Planet Name"),
-        ("hostname", "Host Name"),
-        ("pl_letter", "Planet Letter"),
-        ("hd_name", "HD ID"),
-        ("hip_name", "HIP Name"),
-        ("tic_id", "TIC ID"),
-        ("gaia_id", "GAIA ID"),
-        ("default_flag", "Default Parameter Set"),
-        ("sy_snum", "Number of Stars"),
-        ("sy_pnum", "Number of Planets"),
-        ("sy_mnum", "Number of Moons"),
-        ("cb_flag", "Circumbinary Flag"),
-        ("discoverymethod", "Discovery Method"),
-        ("disc_year", "Discovery Year"),
-        ("disc_refname", "Discovery Reference"),
-        ("disc_pubdate", "Discovery Publication Date"),
+        Item {
+            id: "pl_name",
+            value: "Planet Name",
+        },
+        Item {
+            id: "hostname",
+            value: "Host Name",
+        },
+        Item {
+            id: "pl_letter",
+            value: "Planet Letter",
+        },
+        Item {
+            id: "hd_name",
+            value: "HD ID",
+        },
+        Item {
+            id: "hip_name",
+            value: "HIP Name",
+        },
+        Item {
+            id: "tic_id",
+            value: "TIC ID",
+        },
+        Item {
+            id: "gaia_id",
+            value: "GAIA ID",
+        },
+        Item {
+            id: "default_flag",
+            value: "Default Parameter Set",
+        },
+        Item {
+            id: "sy_snum",
+            value: "Number of Stars",
+        },
+        Item {
+            id: "sy_pnum",
+            value: "Number of Planets",
+        },
+        Item {
+            id: "sy_mnum",
+            value: "Number of Moons",
+        },
+        Item {
+            id: "cb_flag",
+            value: "Circumbinary Flag",
+        },
+        Item {
+            id: "discoverymethod",
+            value: "Discovery Method",
+        },
+        Item {
+            id: "disc_year",
+            value: "Discovery Year",
+        },
+        Item {
+            id: "disc_refname",
+            value: "Discovery Reference",
+        },
+        Item {
+            id: "disc_pubdate",
+            value: "Discovery Publication Date",
+        },
     ];
 
     let initial_comp_ops = vec![
-        ("equals", "="),
-        ("not-equals", "!="),
-        ("less-than", "<"),
-        ("greater-than", ">"),
-        ("greater-than-or-equals", ">="),
-        ("less-than-or-equals", "<="),
+        Item {
+            id: "equals",
+            value: "=",
+        },
+        Item {
+            id: "not-equals",
+            value: "!=",
+        },
+        Item {
+            id: "less-than",
+            value: "<",
+        },
+        Item {
+            id: "greater-than",
+            value: ">",
+        },
+        Item {
+            id: "greater-than-or-equals",
+            value: ">=",
+        },
+        Item {
+            id: "less-than-or-equals",
+            value: "<=",
+        },
     ];
 
     let (comp_ops, set_comp_ops) = create_signal(cx, initial_comp_ops);
 
     let (fields, set_fields) = create_signal(cx, initial_fields);
 
-    let InputUpdater {
-         set_input_objects,
-    } = use_context(cx).unwrap();
+    let (field, set_field) = create_signal(cx, "".to_string());
 
-    let update_field = move |event| { writer.update(move |input| input.field = event_target_value(&event)) }; 
+    let (selected_comp_op, set_selected_comp_op) = create_signal(cx, Item {id: "default", value: "Select an Operator"});
+    let (selected_field, set_selected_field) = create_signal(cx, Item {id: "default", value: "Select a Field"});
+    let InputUpdater { set_input_objects } = use_context(cx).unwrap();
+    
 
     view! { cx,
-        <div class="input-row" id=id field=reader().field>
+        <div class="input-row" id=id field=field()>
             <select name="Logical Operators" class="lops">
                 <option value="and">"And"</option>
                 <option value="or">"Or"</option>
             </select>
-            <select on:change=update_field
-                name="Fields" class="fields">
-                <For
-                    each=fields
-                    key=|field| field.0
-                    view=move |cx, (name, pretty_name)| {
-                        view! { cx,
-                            <option value=name>
-                                {pretty_name}
-                            </option>
-                        }
-                    }
-                />
-
-            </select>
-            <select name="Comp Ops" class="cops">
-                <For
-                    each=comp_ops
-                    key=|op| op.0
-                    view=move |cx, (value, token)| {
-                        view! { cx, <option value=value>{token}</option> }
-                    }
-                />
-
-            </select>
+            <Dropdown items=fields selected=selected_field set_selected=set_selected_field fallback=|cx| ()/>
+            <Dropdown items=comp_ops selected=selected_comp_op set_selected=set_selected_comp_op fallback=|cx| ()/>
             <input type="text"/>
             <button on:click=move |_| {
                 set_input_objects
                     .update(move |inputs| inputs.retain(|(input_id, _)| input_id != &id))
             }>"x"</button>
         </div>
+    }
+}
+
+#[component]
+pub fn Dropdown<F, IV>(
+    cx: Scope,
+    items: ReadSignal<Vec<Item>>,
+    selected: ReadSignal<Item>,
+    set_selected: WriteSignal<Item>,
+    fallback: F,
+    
+) -> impl IntoView
+where
+    F: Fn(Scope) -> IV + 'static,
+    IV: IntoView
+{
+
+    
+    let (expand, set_expand) = create_signal(cx, false);
+
+    let expand_event = move |_| {
+        if expand() == true {
+            set_expand.set(false);
+        } else {
+            set_expand.set(true);
+        }
+    };
+
+    let fallback = store_value(cx, fallback);
+
+    view! { cx,
+        <div class="drop-down" value=move || selected().id.to_string()>
+        <button class="drop-down" on:click=expand_event>
+            {move || selected().value.to_string()}
+        </button>
+        <Show when=expand fallback=move |cx| fallback.with_value(|fallback| fallback(cx))>
+            <ul class="option-list">
+                <For
+                    each=items
+                    key=|item| item.id
+                    view= move |cx, item| {
+                        view! { cx, <li value=item.id on:click=move |_| {
+                            set_selected.set(item);
+                            set_expand.set(false);
+                        }>{move || item.value}</li> }
+                    }
+                />
+            </ul>
+        </Show>
+        </div>
+        
     }
 }
