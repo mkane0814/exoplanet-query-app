@@ -16,7 +16,7 @@ pub fn App(cx: Scope) -> impl IntoView {
         <Stylesheet id="leptos" href="/pkg/leptos_start.css"/>
         <div class="bg"></div>
         // sets the document title
-  <Title text="Welcome to stuff!"/>
+        <Title text="Welcome to stuff!"/>
         <InputArea/>
     }
 }
@@ -178,6 +178,19 @@ pub fn InputRow(
         },
     ];
 
+    let initial_log_ops = vec![
+        Item {
+            id: "and",
+            value: "AND",
+        },
+        Item {
+            id: "or",
+            value: "OR",
+        },
+    ];
+
+    let (log_ops, set_log_ops) = create_signal(cx, initial_log_ops);
+
     let (comp_ops, set_comp_ops) = create_signal(cx, initial_comp_ops);
 
     let (fields, set_fields) = create_signal(cx, initial_fields);
@@ -186,17 +199,30 @@ pub fn InputRow(
 
     let (selected_comp_op, set_selected_comp_op) = create_signal(cx, Item {id: "default", value: "Select an Operator"});
     let (selected_field, set_selected_field) = create_signal(cx, Item {id: "default", value: "Select a Field"});
+    let (selected_log_op, set_selected_log_op) = create_signal(cx, Item {id: "defualt", value: "Select an Operator"});
     let InputUpdater { set_input_objects } = use_context(cx).unwrap();
     
 
     view! { cx,
         <div class="input-row" id=id field=field()>
-            <select name="Logical Operators" class="lops">
-                <option value="and">"And"</option>
-                <option value="or">"Or"</option>
-            </select>
-            <Dropdown items=fields selected=selected_field set_selected=set_selected_field fallback=|cx| ()/>
-            <Dropdown items=comp_ops selected=selected_comp_op set_selected=set_selected_comp_op fallback=|cx| ()/>
+            <Dropdown
+                items=log_ops
+                selected=selected_log_op
+                set_selected=set_selected_log_op
+                fallback=|_| ()
+            />
+            <Dropdown
+                items=fields
+                selected=selected_field
+                set_selected=set_selected_field
+                fallback=|cx| ()
+            />
+            <Dropdown
+                items=comp_ops
+                selected=selected_comp_op
+                set_selected=set_selected_comp_op
+                fallback=|cx| ()
+            />
             <input type="text"/>
             <button on:click=move |_| {
                 set_input_objects
@@ -235,24 +261,31 @@ where
 
     view! { cx,
         <div class="drop-down" value=move || selected().id.to_string()>
-        <button class="drop-down" on:click=expand_event>
-            {move || selected().value.to_string()}
-        </button>
-        <Show when=expand fallback=move |cx| fallback.with_value(|fallback| fallback(cx))>
-            <ul class="option-list">
-                <For
-                    each=items
-                    key=|item| item.id
-                    view= move |cx, item| {
-                        view! { cx, <li value=item.id on:click=move |_| {
-                            set_selected.set(item);
-                            set_expand.set(false);
-                        }>{move || item.value}</li> }
-                    }
-                />
-            </ul>
-        </Show>
+            <button class="drop-down" on:click=expand_event>
+                {move || selected().value.to_string()}
+            </button>
+            <Show when=expand fallback=move |cx| fallback.with_value(|fallback| fallback(cx))>
+                <ul class="option-list">
+                    <For
+                        each=items
+                        key=|item| item.id
+                        view=move |cx, item| {
+                            view! { cx,
+                                <li
+                                    value=item.id
+                                    on:click=move |_| {
+                                        set_selected.set(item);
+                                        set_expand.set(false);
+                                    }
+                                >
+                                    {move || item.value}
+                                </li>
+                            }
+                        }
+                    />
+
+                </ul>
+            </Show>
         </div>
-        
     }
 }
