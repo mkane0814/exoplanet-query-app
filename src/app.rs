@@ -59,6 +59,12 @@ pub fn InputArea(cx: Scope) -> impl IntoView {
         set_input_objects.update(|inputs| inputs.clear());
     };
 
+    let submit_handler = move |_| {
+        for (id, (rs, ws)) in input_objects.get() {
+            leptos::log!("{:?}", rs.get())
+        }
+    };
+
     view! { cx,
         <div class="input-area">
             <div class="input-controls">
@@ -72,7 +78,9 @@ pub fn InputArea(cx: Scope) -> impl IntoView {
                     view! { cx, <InputRow id=id reader=rs writer=ws/> }
                 }
             />
-
+            <div class="submit-area">
+                <button on:click=submit_handler>"Submit"</button>
+            </div>
         </div>
     }
 }
@@ -195,16 +203,20 @@ pub fn InputRow(
 
     let (fields, set_fields) = create_signal(cx, initial_fields);
 
-    let (field, set_field) = create_signal(cx, "".to_string());
 
     let (selected_comp_op, set_selected_comp_op) = create_signal(cx, Item {id: "default", value: "Select an Operator"});
     let (selected_field, set_selected_field) = create_signal(cx, Item {id: "default", value: "Select a Field"});
     let (selected_log_op, set_selected_log_op) = create_signal(cx, Item {id: "defualt", value: "Select an Operator"});
     let InputUpdater { set_input_objects } = use_context(cx).unwrap();
-    
 
+    create_effect(cx, move |_| {
+        writer.update(move |input| input.logical_op = selected_log_op.get().id.to_string());
+        writer.update(move |input| input.comparison_op = selected_comp_op.get().id.to_string());
+        writer.update(move |input| input.field = selected_field.get().id.to_string());
+    });
+    
     view! { cx,
-        <div class="input-row" id=id field=field()>
+        <div class="input-row" id=id>
             <Dropdown
                 items=log_ops
                 selected=selected_log_op
@@ -223,7 +235,9 @@ pub fn InputRow(
                 set_selected=set_selected_comp_op
                 fallback=|cx| ()
             />
-            <input type="text"/>
+            <input type="text" on:input=move |ev| {
+                    writer.update(move |input| input.value = event_target_value(&ev))
+                }/>
             <button on:click=move |_| {
                 set_input_objects
                     .update(move |inputs| inputs.retain(|(input_id, _)| input_id != &id))
