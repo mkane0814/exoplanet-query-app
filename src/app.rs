@@ -19,6 +19,7 @@ pub fn App(cx: Scope) -> impl IntoView {
         // sets the document title
         <Title text="Welcome to stuff!"/>
         <InputArea/>
+        <OutputArea/>
     }
 }
 
@@ -269,6 +270,51 @@ pub fn InputRow(
     }
 }
 
+
+#[component]
+pub fn OutputArea(cx: Scope) -> impl IntoView {
+    view! { cx,
+        <div class="output-area">
+        </div>
+    }
+}
+
+
+#[component]
+pub fn OutputTable(
+    cx: Scope,
+    data: ReadSignal<Vec<(usize, ReadSignal<HashMap<&'static str, &'static str>>)>>,
+    id: usize,
+    keys: ReadSignal<Vec<&'static str>>,
+) -> impl IntoView {
+    view! {
+        cx,
+        <table class="output-table">
+            <tr>
+                <For 
+                    each=keys
+                    key=|id| *id
+                    view=move |cx, id| {
+                    view! {
+                        cx,
+                        <th>{move || { id }}</th>
+                    }
+                }
+                />
+            </tr>
+            <For
+                each=data
+                key=|entry| entry.0
+                view=move |cx, (id, map)| {
+                    view! { cx,
+                        <SummaryRow data=map id=id keys=keys/>
+                    }
+                }
+            />
+        </table>
+    }   
+}
+
 #[component]
 pub fn SummaryRow(
     cx: Scope,
@@ -277,13 +323,13 @@ pub fn SummaryRow(
     keys: ReadSignal<Vec<&'static str>>,
 ) -> impl IntoView {
     view! { cx,
-        <div class="summary-row" id=id>
+        <tr class="summary-row" id=id>
             <For
                 each=keys
                 key=|id| *id
                 view=move |cx, id| {
                     view! { cx,
-                        <div class="summary-row-cell">
+                        <td class="summary-row-cell">
                             {move || {
                                     if let Some(value) = data().get(id) {
                                         value
@@ -292,13 +338,13 @@ pub fn SummaryRow(
                                     }
                                 }
                             }
-                        </div>
+                        </td>
                     }
 
                 }
             />
 
-        </div>
+        </tr>
     }
 }
 
