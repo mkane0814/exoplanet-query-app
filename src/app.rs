@@ -164,27 +164,27 @@ pub fn InputRow(
 
     let initial_comp_ops = vec![
         Item {
-            id: "equals",
+            id: "$eq",
             value: "=",
         },
         Item {
-            id: "not-equals",
+            id: "$ne",
             value: "!=",
         },
         Item {
-            id: "less-than",
+            id: "$lt",
             value: "<",
         },
         Item {
-            id: "greater-than",
+            id: "$gt",
             value: ">",
         },
         Item {
-            id: "greater-than-or-equals",
+            id: "$gte",
             value: ">=",
         },
         Item {
-            id: "less-than-or-equals",
+            id: "$lte",
             value: "<=",
         },
     ];

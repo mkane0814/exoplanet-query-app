@@ -1,12 +1,14 @@
 use leptos::*;
 use leptos_meta::*;
 use cfg_if::cfg_if;
-use crate::model::input::Query;
+use crate::model::input::{Query, Input};
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
-        use mongodb::{Client, options::ClientOptions, bson::Document};
+        use mongodb::{Client, options::ClientOptions, bson::Document, bson::doc};
         use crate::model::data::Data;
+        use futures::stream::TryStreamExt;
+
 
         pub async fn get_client() -> Result<Client, ServerFnError> {
             let uri = "mongodb://localhost:27017";
@@ -18,16 +20,33 @@ cfg_if! {
         pub async fn find_records(query: Query) -> Result<Data, ServerFnError> {
             let client = get_client().await?; 
             let collection = client.database("exoplannetdata").collection::<Document>("data");
-            Ok(Data {
+            
+            let mut query_doc = Document::new();
+
+            for input in query.inputs {
+                let doc = doc! { input.comparison_op : input.value };
+                query_doc.insert(input.field, doc);
+            }
+
+            let mut cursor = collection.find(query_doc, None).await?;
+
+            let mut data = Data {
                 results: Vec::<Document>::new()
-            })
+            };
+
+            while let Some(doc) = cursor.try_next().await? {
+                data.results.push(doc);
+            }
+
+            Ok(data)
 
         }
     }
 }
 
 #[server(QueryDb, "/api")]
-pub async fn query_db(cx: Scope, query: Query) -> Result<(), ServerFnError> {
-    Ok(())
+pub async fn query_db(query: Query) -> Result<Data, ServerFnError> {
+    let results = find_records(query).await?;
+    Ok(results)
 }
 

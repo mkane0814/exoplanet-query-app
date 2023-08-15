@@ -42,11 +42,12 @@ pub enum LogicalOperators {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ComparisonOperators {
-    LessThan,
-    GreaterThan,
-    Equals,
-    NotEquals,
-    LessThanOrEquals,
-    GreaterThanOrEquals,
+pub enum ComparisonOperator {
+    LessThan(String),
+    GreaterThan(String),
+    Equals(String),
+    NotEquals(String),
+    LessThanOrEquals(String),
+    GreaterThanOrEquals(String),
+    Default(String),
 }
