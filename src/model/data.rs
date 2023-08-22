@@ -1,9 +1,6 @@
 use serde::{Serialize, Deserialize};
+use bson::Document;
 
-#[cfg(feature = "ssr")]
-use mongodb::bson::Document;
-
-#[cfg(feature = "ssr")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Data {
     pub results: Vec<Document>,
