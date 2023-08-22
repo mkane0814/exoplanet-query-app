@@ -145,7 +145,7 @@ pub fn InputRow(
             value: "Circumbinary Flag",
         },
         Item {
-            id: "discoverymethod",
+            id: "discovery_method",
             value: "Discovery Method",
         },
         Item {
@@ -247,13 +247,13 @@ pub fn InputRow(
                 items=fields
                 selected=selected_field
                 set_selected=set_selected_field
-                fallback=|cx| ()
+                fallback=|_cx| ()
             />
             <Dropdown
                 items=comp_ops
                 selected=selected_comp_op
                 set_selected=set_selected_comp_op
-                fallback=|cx| ()
+                fallback=|_cx| ()
             />
             <input
                 type="text"
@@ -289,7 +289,7 @@ pub fn OutputTable(
 ) -> impl IntoView {
     view! {
         cx,
-        <table class="output-table">
+        <table class="output-table" id=move || id>
             <tr>
                 <For 
                     each=keys
