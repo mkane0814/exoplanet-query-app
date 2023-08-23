@@ -29,10 +29,8 @@ cfg_if! {
 
             let mut cursor = collection.find(query_doc, None).await?;
 
-            let mut data = Data {
-                results: Vec::<Document>::new()
-            };
-
+            let mut data = Data::new();
+            
             while let Some(doc) = cursor.try_next().await? {
                 data.results.push(doc);
             }

@@ -5,3 +5,11 @@ use bson::Document;
 pub struct Data {
     pub results: Vec<Document>,
 }
+
+impl Data {
+    pub fn new() -> Data {
+        Data {
+            results: Vec::<Document>::new(),
+        }
+    }
+}

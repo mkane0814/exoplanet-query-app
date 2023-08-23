@@ -1,7 +1,10 @@
-use crate::model::input::{Input, Query};
+use crate::{
+    api::QueryDb,
+    model::input::Input,
+};
+use bson::Document;
 use leptos::*;
 use leptos_meta::*;
-use leptos_router::*;
 use std::collections::HashMap;
 
 #[component]
@@ -9,7 +12,6 @@ pub fn App(cx: Scope) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context(cx);
 
-    let (query, set_query) = create_signal(cx, Query::new());
 
     view! { cx,
         // injects a stylesheet into the document <head>
@@ -49,6 +51,7 @@ pub fn InputArea(cx: Scope) -> impl IntoView {
 
     provide_context(cx, InputUpdater { set_input_objects });
 
+    let query_action = create_server_action::<QueryDb>(cx);
     let add_input = move |_| {
         let sig = create_signal(cx, Input::new());
 
@@ -62,9 +65,11 @@ pub fn InputArea(cx: Scope) -> impl IntoView {
     };
 
     let submit_handler = move |_| {
+        let mut inputs = Vec::<Input>::new();
         for (_id, (rs, _ws)) in input_objects.get() {
-            leptos::log!("{:?}", rs.get())
+            inputs.push(rs.get());
         }
+        query_action.dispatch(QueryDb { query: inputs });
     };
 
     view! { cx,
@@ -76,8 +81,8 @@ pub fn InputArea(cx: Scope) -> impl IntoView {
             <For
                 each=input_objects
                 key=|input_objects| input_objects.0
-                view=move |cx, (id, (rs, ws))| {
-                    view! { cx, <InputRow id=id reader=rs writer=ws/> }
+                view=move |cx, (id, (_, ws))| {
+                    view! { cx, <InputRow id=id writer=ws/> }
                 }
             />
 
@@ -92,7 +97,6 @@ pub fn InputArea(cx: Scope) -> impl IntoView {
 pub fn InputRow(
     cx: Scope,
     id: usize,
-    reader: ReadSignal<Input>,
     writer: WriteSignal<Input>,
 ) -> impl IntoView {
     let initial_fields = vec![
@@ -200,11 +204,11 @@ pub fn InputRow(
         },
     ];
 
-    let (log_ops, set_log_ops) = create_signal(cx, initial_log_ops);
+    let (log_ops, _set_log_ops) = create_signal(cx, initial_log_ops);
 
-    let (comp_ops, set_comp_ops) = create_signal(cx, initial_comp_ops);
+    let (comp_ops, _set_comp_ops) = create_signal(cx, initial_comp_ops);
 
-    let (fields, set_fields) = create_signal(cx, initial_fields);
+    let (fields, _set_fields) = create_signal(cx, initial_fields);
 
     let (selected_comp_op, set_selected_comp_op) = create_signal(
         cx,
@@ -270,7 +274,6 @@ pub fn InputRow(
     }
 }
 
-
 #[component]
 pub fn OutputArea(cx: Scope) -> impl IntoView {
     view! { cx,
@@ -279,11 +282,10 @@ pub fn OutputArea(cx: Scope) -> impl IntoView {
     }
 }
 
-
 #[component]
 pub fn OutputTable(
     cx: Scope,
-    data: ReadSignal<Vec<(usize, ReadSignal<HashMap<&'static str, &'static str>>)>>,
+    data: ReadSignal<Vec<(usize, ReadSignal<Document>)>>,
     id: usize,
     keys: ReadSignal<Vec<&'static str>>,
 ) -> impl IntoView {
@@ -291,7 +293,7 @@ pub fn OutputTable(
         cx,
         <table class="output-table" id=move || id>
             <tr>
-                <For 
+                <For
                     each=keys
                     key=|id| *id
                     view=move |cx, id| {
@@ -307,20 +309,20 @@ pub fn OutputTable(
                 key=|entry| entry.0
                 view=move |cx, (id, map)| {
                     view! { cx,
-                        <SummaryRow data=map id=id keys=keys/>
+                        <SummaryRow keys=keys data=map id=id/>
                     }
                 }
             />
         </table>
-    }   
+    }
 }
 
 #[component]
 pub fn SummaryRow(
     cx: Scope,
-    data: ReadSignal<HashMap<&'static str, &'static str>>,
-    id: usize,
+    data: ReadSignal<Document>,
     keys: ReadSignal<Vec<&'static str>>,
+    id: usize,
 ) -> impl IntoView {
     view! { cx,
         <tr class="summary-row" id=id>
@@ -331,10 +333,10 @@ pub fn SummaryRow(
                     view! { cx,
                         <td class="summary-row-cell">
                             {move || {
-                                    if let Some(value) = data().get(id) {
-                                        value
+                                    if let Ok(value) = data().get_str(id) {
+                                        value.to_string()
                                     } else {
-                                        ""
+                                        "".to_string()
                                     }
                                 }
                             }
