@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+	font-family: sans-serif;
+	text-align: center;
+  color: #fff;
+  height: 100%;
+  margin: 0;
+
+}
+
+.bg {
+  background-image: linear-gradient(to right bottom, #051937, #0e1c3e, #171f45, #20224b, #2a2451, #362453, #422353, #4d2253, #5b1e4d, #661a45, #6f183b, #751a31);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+}
+
+ul { 
+  position:sticky;
+
+  padding: 0px;
+  margin: 0px;
+  z-index: 1;
+}
+
+
+
+.input-row {
+  display: flex; 
+  margin: 2px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+
+}
+
+.drop-down button {
+  min-width: 10rem;
+}
+
+.input-row .drop-down {
+  display: flex;
+  flex: 0 0 fit-content;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.input-row button {
+  margin: 5px;
+  align-self: flex-start; 
+  cursor: pointer;
+}
+
+.input-row select {
+  margin: 5px;
+  text-align: center;
+  align-self: flex-start; 
+}
+
+.input-row input {
+  margin: 5px;
+  flex: 1;
+  align-self: flex-start; 
+}
+
