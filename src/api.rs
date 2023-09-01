@@ -16,9 +16,9 @@ cfg_if! {
 
         }
 
-        pub async fn find_records(query: Vec<Input>) -> Result<Data, ServerFnError> {
+        pub async fn find_records(query: Vec<Input>) -> Result<Vec<Data>, ServerFnError> {
             let client = get_client().await?; 
-            let collection = client.database("exoplannetdata").collection::<Document>("data");
+            let collection = client.database("exoplannetdata").collection::<Data>("data");
             
             let mut query_doc = Document::new();
 
@@ -29,10 +29,10 @@ cfg_if! {
 
             let mut cursor = collection.find(query_doc, None).await?;
 
-            let mut data = Data::new();
+            let mut data = Vec::new();
             
             while let Some(doc) = cursor.try_next().await? {
-                data.results.push(doc);
+                data.push(doc);
             }
 
             Ok(data)
@@ -42,7 +42,7 @@ cfg_if! {
 }
 
 #[server(QueryDb, "/api")]
-pub async fn query_db(query: Vec<Input>) -> Result<Data, ServerFnError> {
+pub async fn query_db(query: Vec<Input>) -> Result<Vec<Data>, ServerFnError> {
     let results = find_records(query).await?;
     Ok(results)
     
