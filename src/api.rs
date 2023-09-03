@@ -1,7 +1,6 @@
-use leptos::*;
-use leptos_meta::*;
+use crate::model::{data::Data, input::Input};
 use cfg_if::cfg_if;
-use crate::model::{input::Input, data::Data};
+use leptos::*;
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
@@ -17,9 +16,9 @@ cfg_if! {
         }
 
         pub async fn find_records(query: Vec<Input>) -> Result<Vec<Data>, ServerFnError> {
-            let client = get_client().await?; 
-            let collection = client.database("exoplannetdata").collection::<Data>("data");
-            
+            let client = get_client().await?;
+            let collection = client.database("exoplannetdata-href-extract").collection::<Data>("data");
+
             let mut query_doc = Document::new();
 
             for input in query {
@@ -30,10 +29,12 @@ cfg_if! {
             let mut cursor = collection.find(query_doc, None).await?;
 
             let mut data = Vec::new();
-            
+
             while let Some(doc) = cursor.try_next().await? {
                 data.push(doc);
             }
+
+            data.dedup();
 
             Ok(data)
 
@@ -43,8 +44,14 @@ cfg_if! {
 
 #[server(QueryDb, "/api")]
 pub async fn query_db(query: Vec<Input>) -> Result<Vec<Data>, ServerFnError> {
-    let results = find_records(query).await?;
-    Ok(results)
-    
+    match find_records(query).await {
+        Ok(results) => {
+            log!("Found {} results!", results.len());
+            Ok(results)
+        }
+        Err(error) => {
+            leptos::error!("{}", error);
+            Err(error)
+        }
+    }
 }
-

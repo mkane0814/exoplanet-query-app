@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .dropdown:is(:not(details)) .dropdown-content {
+    transition-property: ;
+  }
+}
+
 body {
 	font-family: sans-serif;
 	text-align: center;
@@ -21,15 +27,9 @@ body {
   z-index: -1;
 }
 
-ul { 
-  position:sticky;
-
-  padding: 0px;
-  margin: 0px;
-  z-index: 1;
+.dropdown-content {
+  visibility: visible;
 }
-
-
 
 .input-row {
   display: flex; 

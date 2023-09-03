@@ -2,7 +2,6 @@ use crate::{
     api::QueryDb,
     model::{data::Data, input::Input},
 };
-use bson::Document;
 use leptos::*;
 use leptos_meta::*;
 use std::collections::HashMap;
@@ -24,26 +23,6 @@ pub fn App(cx: Scope) -> impl IntoView {
         Item {
             id: "pl_letter",
             value: "Planet Letter",
-        },
-        Item {
-            id: "hd_name",
-            value: "HD ID",
-        },
-        Item {
-            id: "hip_name",
-            value: "HIP Name",
-        },
-        Item {
-            id: "tic_id",
-            value: "TIC ID",
-        },
-        Item {
-            id: "gaia_id",
-            value: "GAIA ID",
-        },
-        Item {
-            id: "default_flag",
-            value: "Default Parameter Set",
         },
         Item {
             id: "sy_snum",
@@ -164,7 +143,6 @@ pub fn InputArea(
         <div class="input-area">
             <div class="input-controls">
                 <button class="btn btn-outline btn-accent" on:click=add_input>"Add Input"</button>
-                <button class="btn btn-outline btn-accent" on:click=clear_input>"Clear Input"</button>
             </div>
             <For
                 each=input_objects
@@ -175,7 +153,8 @@ pub fn InputArea(
             />
 
             <div class="submit-area">
-                <button class="btn btn-primary" on:click=submit_handler>"Submit"</button>
+                <button class="btn btn-outline btn-primary" on:click=submit_handler>"Submit"</button>
+                <button class="btn btn-outline btn-accent" on:click=clear_input>"Clear Input"</button>
             </div>
         </div>
     }
@@ -210,20 +189,7 @@ pub fn InputRow(cx: Scope, id: usize, writer: WriteSignal<Input>) -> impl IntoVi
         },
     ];
 
-    let initial_log_ops = vec![
-        Item {
-            id: "and",
-            value: "AND",
-        },
-        Item {
-            id: "or",
-            value: "OR",
-        },
-    ];
-
     let Fields { fields } = use_context(cx).unwrap();
-
-    let (log_ops, _set_log_ops) = create_signal(cx, initial_log_ops);
 
     let (comp_ops, _set_comp_ops) = create_signal(cx, initial_comp_ops);
 
@@ -241,40 +207,24 @@ pub fn InputRow(cx: Scope, id: usize, writer: WriteSignal<Input>) -> impl IntoVi
             value: "Select a Field",
         },
     );
-    let (selected_log_op, set_selected_log_op) = create_signal(
-        cx,
-        Item {
-            id: "defualt",
-            value: "Select an Operator",
-        },
-    );
     let InputUpdater { set_input_objects } = use_context(cx).unwrap();
 
     create_effect(cx, move |_| {
-        writer.update(move |input| input.logical_op = selected_log_op.get().id.to_string());
         writer.update(move |input| input.comparison_op = selected_comp_op.get().id.to_string());
         writer.update(move |input| input.field = selected_field.get().id.to_string());
     });
 
     view! { cx,
         <div class="input-row" id=id>
-            <Dropdown
-                items=log_ops
-                selected=selected_log_op
-                set_selected=set_selected_log_op
-                fallback=|_| ()
-            />
-            <Dropdown
+           <Dropdown
                 items=fields
                 selected=selected_field
                 set_selected=set_selected_field
-                fallback=|_cx| ()
             />
             <Dropdown
                 items=comp_ops
                 selected=selected_comp_op
                 set_selected=set_selected_comp_op
-                fallback=|_cx| ()
             />
             <input
                 class="input input-bordered input-accent w-full"
@@ -295,7 +245,7 @@ pub fn InputRow(cx: Scope, id: usize, writer: WriteSignal<Input>) -> impl IntoVi
 #[component]
 pub fn OutputArea(cx: Scope) -> impl IntoView {
     view! { cx,
-        <div class="output-area overflow-x-auto">
+        <div class="output-area overflow-x-auto overflow-y-auto">
             <OutputTable />
         </div>
     }
@@ -346,21 +296,16 @@ pub fn OutputTable(cx: Scope) -> impl IntoView {
 pub fn SummaryRow(cx: Scope, data: Data) -> impl IntoView {
     view! { cx,
         <tr class="summary-row hover">
-            <td>{data.pl_name}</td>
+            <td><a href=data.caltech_href>{data.pl_name}</a></td>
             <td>{data.hostname}</td>
             <td>{data.pl_letter}</td>
-            <td>{data.hd_name}</td>
-            <td>{data.hip_name}</td>
-            <td>{data.tic_id}</td>
-            <td>{data.gaia_id}</td>
-            <td>{data.default_flag}</td>
             <td>{data.sy_snum}</td>
             <td>{data.sy_pnum}</td>
             <td>{data.sy_mnum}</td>
             <td>{data.cb_flag}</td>
             <td>{data.discovery_method}</td>
             <td>{data.disc_year}</td>
-            <td>{data.disc_refname}</td>
+            <td><a href=data.disc_refhref>{data.disc_refname}</a></td>
             <td>{data.disc_pubdate}</td>
         </tr>
     }
@@ -368,45 +313,28 @@ pub fn SummaryRow(cx: Scope, data: Data) -> impl IntoView {
 
 #[component]
 pub fn DetailRow(
-    cx: Scope,
-    data: HashMap<String, String>,
-    id: usize,
-    keys: Vec<String>,
+    _cx: Scope,
+    _data: HashMap<String, String>,
+    _id: usize,
+    _keys: Vec<String>,
 ) -> impl IntoView {
     todo!()
 }
 
 #[component]
-pub fn Dropdown<F, IV>(
+pub fn Dropdown(
     cx: Scope,
     items: ReadSignal<Vec<Item>>,
     selected: ReadSignal<Item>,
     set_selected: WriteSignal<Item>,
-    fallback: F,
-) -> impl IntoView
-where
-    F: Fn(Scope) -> IV + 'static,
-    IV: IntoView,
-{
-    let (expand, set_expand) = create_signal(cx, false);
-
-    let expand_event = move |_| {
-        if expand() == true {
-            set_expand.set(false);
-        } else {
-            set_expand.set(true);
-        }
-    };
-
-    let fallback = store_value(cx, fallback);
-
+) -> impl IntoView {
+    let (open, set_open) = create_signal(cx, false);
     view! { cx,
-        <div class="drop-down" value=move || selected().id.to_string()>
-            <button class="drop-down" on:click=expand_event>
+        <details class="dropdown mb-32" value=move || selected().id.to_string() prop:open=open>
+            <summary class="btn m-1">
                 {move || selected().value.to_string()}
-            </button>
-            <Show when=expand fallback=move |cx| fallback.with_value(|fallback| fallback(cx))>
-                <ul class="option-list">
+            </summary>
+                <ul class="dropdown-content z-[1] menu shadow bg-base-100 rounded-box w-52">
                     <For
                         each=items
                         key=|item| item.id
@@ -415,8 +343,8 @@ where
                                 <li
                                     value=item.id
                                     on:click=move |_| {
-                                        set_selected.set(item);
-                                        set_expand.set(false);
+                                        set_open(false);
+                                        set_selected(item);
                                     }
                                 >
                                     {move || item.value}
@@ -426,7 +354,6 @@ where
                     />
 
                 </ul>
-            </Show>
-        </div>
+        </details>
     }
 }
