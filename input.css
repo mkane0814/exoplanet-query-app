@@ -27,10 +27,6 @@ body {
   z-index: -1;
 }
 
-.dropdown-content {
-  visibility: visible;
-}
-
 .input-row {
   display: flex; 
   margin: 2px;
@@ -42,13 +38,6 @@ body {
 
 .drop-down button {
   min-width: 10rem;
-}
-
-.input-row .drop-down {
-  display: flex;
-  flex: 0 0 fit-content;
-  flex-direction: column;
-  justify-content: center;
 }
 
 .input-row button {

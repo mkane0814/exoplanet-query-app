@@ -4,13 +4,55 @@ use crate::{
 };
 use leptos::*;
 use leptos_meta::*;
-use std::collections::HashMap;
+use leptos_router::*;
+
+type InputHolder = Vec<(usize, (ReadSignal<Input>, WriteSignal<Input>))>;
+
+#[derive(Clone, Copy)]
+struct InputUpdater {
+    set_input_objects: WriteSignal<InputHolder>,
+}
+
+#[derive(Clone, Copy)]
+struct Fields {
+    fields: ReadSignal<Vec<Item>>,
+}
+
+#[derive(Clone, Copy)]
+struct QueryOutput {
+    value: ReadSignal<Option<Result<Vec<Data>, ServerFnError>>>,
+}
+
+#[derive(Clone, Copy)]
+pub struct Item {
+    pub id: &'static str,
+    pub value: &'static str,
+}
 
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context(cx);
 
+    view! { cx,
+        // injects a stylesheet into the document <head>
+        // id=leptos means cargo-leptos will hot-reload this stylesheet
+        <Stylesheet id="leptos" href="/pkg/leptos_start.css"/>
+        <Link rel="icon" type_="image/x-icon" href="/assets/favicon.ico" />
+        <div class="bg-neutral"></div>
+        // sets the document title
+        <Router>
+            <main>
+                <Routes>
+                    <Route path="/" view=Home />
+                </Routes>
+            </main>
+        </Router>
+    }
+}
+
+#[component]
+pub fn Home(cx: Scope) -> impl IntoView {
     let initial_fields = vec![
         Item {
             id: "pl_name",
@@ -19,10 +61,6 @@ pub fn App(cx: Scope) -> impl IntoView {
         Item {
             id: "hostname",
             value: "Host Name",
-        },
-        Item {
-            id: "pl_letter",
-            value: "Planet Letter",
         },
         Item {
             id: "sy_snum",
@@ -67,40 +105,12 @@ pub fn App(cx: Scope) -> impl IntoView {
             value: query_action.value().read_only(),
         },
     );
-
     view! { cx,
-        // injects a stylesheet into the document <head>
-        // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/leptos_start.css"/>
-        <div class="bg-neutral"></div>
-        // sets the document title
-        <Title text="Welcome to stuff!"/>
+
+        <Title text="Exoplanet Query App"/>
         <InputArea query_action/>
         <OutputArea/>
     }
-}
-
-type InputHolder = Vec<(usize, (ReadSignal<Input>, WriteSignal<Input>))>;
-
-#[derive(Clone, Copy)]
-struct InputUpdater {
-    set_input_objects: WriteSignal<InputHolder>,
-}
-
-#[derive(Clone, Copy)]
-struct Fields {
-    fields: ReadSignal<Vec<Item>>,
-}
-
-#[derive(Clone, Copy)]
-struct QueryOutput {
-    value: ReadSignal<Option<Result<Vec<Data>, ServerFnError>>>,
-}
-
-#[derive(Clone, Copy)]
-pub struct Item {
-    pub id: &'static str,
-    pub value: &'static str,
 }
 
 #[component]
@@ -141,8 +151,8 @@ pub fn InputArea(
 
     view! { cx,
         <div class="input-area">
-            <div class="input-controls">
-                <button class="btn btn-outline btn-accent" on:click=add_input>"Add Input"</button>
+            <div class="flex justify-center input-controls">
+                <button class="btn btn-outline btn-secondary" on:click=add_input>"Add Input"</button>
             </div>
             <For
                 each=input_objects
@@ -152,9 +162,9 @@ pub fn InputArea(
                 }
             />
 
-            <div class="submit-area">
-                <button class="btn btn-outline btn-primary" on:click=submit_handler>"Submit"</button>
-                <button class="btn btn-outline btn-accent" on:click=clear_input>"Clear Input"</button>
+            <div class="flex submit-area justify-center gap-4">
+                <button class="btn btn-outline btn-success" on:click=submit_handler>"Submit"</button>
+                <button class="btn btn-outline btn-error" on:click=clear_input>"Clear Input"</button>
             </div>
         </div>
     }
@@ -227,7 +237,7 @@ pub fn InputRow(cx: Scope, id: usize, writer: WriteSignal<Input>) -> impl IntoVi
                 set_selected=set_selected_comp_op
             />
             <input
-                class="input input-bordered input-accent w-full"
+                class="input input-bordered input-info w-full"
                 type="text"
                 on:input=move |ev| {
                     writer.update(move |input| input.value = event_target_value(&ev))
@@ -266,39 +276,44 @@ pub fn OutputTable(cx: Scope) -> impl IntoView {
     view! {
         cx,
         <table class="output-table table">
-            <tr>
-                <For
-                    each=fields
-                    key=|field| field.value
-                    view=move |cx, field| {
-                    view! {
-                        cx,
-                        <th>{move || { field.value }}</th>
+            <thead>
+                <tr>
+                    <For
+                        each=fields
+                        key=|field| field.value
+                        view=move |cx, field| {
+                        view! {
+                            cx,
+                            <th>{move || { field.value }}</th>
+                        }
                     }
+                    />
+                </tr>
+            </thead>
+            <tbody>
+                <For
+                    each=unwrap_data
+                    key=|result| result.to_owned()
+                    view=move |cx, result| {
+                view! {
+                    cx,
+                    <SummaryRow data=result />
                 }
-                />
-            </tr>
-            <For
-                each=unwrap_data
-                key=|result| result.to_owned()
-                view=move |cx, result| {
-            view! {
-                cx,
-                <SummaryRow data=result />
             }
-        }
-        />
+            />
+            </tbody>
         </table>
     }
 }
 
 #[component]
 pub fn SummaryRow(cx: Scope, data: Data) -> impl IntoView {
+    let (open, set_open) = create_signal(cx, false);
+    let toggle = move |_| set_open(!open());
     view! { cx,
-        <tr class="summary-row hover">
+        <tr class="summary-row hover" on:click=toggle>
             <td><a href=data.caltech_href>{data.pl_name}</a></td>
             <td>{data.hostname}</td>
-            <td>{data.pl_letter}</td>
             <td>{data.sy_snum}</td>
             <td>{data.sy_pnum}</td>
             <td>{data.sy_mnum}</td>
@@ -308,17 +323,50 @@ pub fn SummaryRow(cx: Scope, data: Data) -> impl IntoView {
             <td><a href=data.disc_refhref>{data.disc_refname}</a></td>
             <td>{data.disc_pubdate}</td>
         </tr>
+        <Show
+            when=open
+            fallback=|_| ()
+        >
+            <tr class="bg-primary-focus">
+                <td colspan=10>
+                    <div class="grid grid-cols-10 auto-cols-auto gap-4 w-full">
+                        <div class="grid grid-cols-1">
+                            <div class="justify-self-center">"Planet Letter"</div>
+                            <div>{data.pl_letter.to_owned()}</div>
+                        </div>
+                        <div>
+                            <div>"Planet Letter"</div>
+                            <div></div>
+                        </div>
+                        <div>
+                            <div>"Planet Letter"</div>
+                            <div></div>
+                        </div>
+                        <div>
+                            <div>"Planet Letter"</div>
+                            <div></div>
+                        </div>
+                        <div>
+                            <div>"Planet Letter"</div>
+                            <div></div>
+                        </div>
+                        <div>
+                            <div>"Planet Letter"</div>
+                            <div></div>
+                        </div>
+                        <div>
+                            <div>"Planet Letter"</div>
+                            <div></div>
+                        </div>
+                        <div>
+                            <div>"Planet Letter"</div>
+                            <div></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </Show>
     }
-}
-
-#[component]
-pub fn DetailRow(
-    _cx: Scope,
-    _data: HashMap<String, String>,
-    _id: usize,
-    _keys: Vec<String>,
-) -> impl IntoView {
-    todo!()
 }
 
 #[component]
@@ -330,11 +378,11 @@ pub fn Dropdown(
 ) -> impl IntoView {
     let (open, set_open) = create_signal(cx, false);
     view! { cx,
-        <details class="dropdown mb-32" value=move || selected().id.to_string() prop:open=open>
-            <summary class="btn m-1">
+        <details class="dropdown" value=move || selected().id.to_string() prop:open=open>
+            <summary class="btn btn-outline btn-info m-1">
                 {move || selected().value.to_string()}
             </summary>
-                <ul class="dropdown-content z-[1] menu shadow bg-base-100 rounded-box w-52">
+                <ul class="dropdown-content z-[1] menu shadow bg-base-200 rounded-box w-52">
                     <For
                         each=items
                         key=|item| item.id
