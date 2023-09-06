@@ -21,6 +21,9 @@ cfg_if! {
 
             let mut query_doc = Document::new();
 
+            let default_flag = doc! { "$eq" : "1" };
+            query_doc.insert("default_flag", default_flag);
+
             for input in query {
                 let doc = doc! { input.comparison_op : input.value };
                 query_doc.insert(input.field, doc);

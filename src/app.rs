@@ -30,21 +30,21 @@ pub struct Item {
 }
 
 #[component]
-pub fn App(cx: Scope) -> impl IntoView {
+pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
-    provide_meta_context(cx);
+    provide_meta_context();
 
-    view! { cx,
+    view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/leptos_start.css"/>
-        <Link rel="icon" type_="image/x-icon" href="/assets/favicon.ico" />
+        <Link rel="icon" type_="image/x-icon" href="/assets/favicon.ico"/>
         <div class="bg-neutral"></div>
         // sets the document title
         <Router>
             <main>
                 <Routes>
-                    <Route path="/" view=Home />
+                    <Route path="/" view=Home/>
                 </Routes>
             </main>
         </Router>
@@ -52,7 +52,7 @@ pub fn App(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-pub fn Home(cx: Scope) -> impl IntoView {
+pub fn Home() -> impl IntoView {
     let initial_fields = vec![
         Item {
             id: "pl_name",
@@ -96,17 +96,13 @@ pub fn Home(cx: Scope) -> impl IntoView {
         },
     ];
 
-    let (fields, _) = create_signal(cx, initial_fields);
-    let query_action = create_server_action::<QueryDb>(cx);
-    provide_context(cx, Fields { fields });
-    provide_context(
-        cx,
-        QueryOutput {
-            value: query_action.value().read_only(),
-        },
-    );
-    view! { cx,
-
+    let (fields, _) = create_signal(initial_fields);
+    let query_action = create_server_action::<QueryDb>();
+    provide_context(Fields { fields });
+    provide_context(QueryOutput {
+        value: query_action.value().read_only(),
+    });
+    view! {
         <Title text="Exoplanet Query App"/>
         <InputArea query_action/>
         <OutputArea/>
@@ -114,23 +110,20 @@ pub fn Home(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-pub fn InputArea(
-    cx: Scope,
-    query_action: Action<QueryDb, Result<Vec<Data>, ServerFnError>>,
-) -> impl IntoView {
+pub fn InputArea(query_action: Action<QueryDb, Result<Vec<Data>, ServerFnError>>) -> impl IntoView {
     let initial_size = 1;
     let mut next_counter_id = initial_size;
 
     let initial_inputs = (0..initial_size)
-        .map(|id| (id, create_signal(cx, Input::new())))
+        .map(|id| (id, create_signal(Input::new())))
         .collect::<Vec<_>>();
 
-    let (input_objects, set_input_objects) = create_signal(cx, initial_inputs);
+    let (input_objects, set_input_objects) = create_signal(initial_inputs);
 
-    provide_context(cx, InputUpdater { set_input_objects });
+    provide_context(InputUpdater { set_input_objects });
 
     let add_input = move |_| {
-        let sig = create_signal(cx, Input::new());
+        let sig = create_signal(Input::new());
 
         set_input_objects.update(move |inputs| inputs.push((next_counter_id, sig)));
 
@@ -149,29 +142,35 @@ pub fn InputArea(
         query_action.dispatch(QueryDb { query: inputs });
     };
 
-    view! { cx,
+    view! {
         <div class="input-area">
             <div class="flex justify-center input-controls">
-                <button class="btn btn-outline btn-secondary" on:click=add_input>"Add Input"</button>
+                <button class="btn btn-outline btn-secondary" on:click=add_input>
+                    "Add Input"
+                </button>
             </div>
             <For
                 each=input_objects
                 key=|input_objects| input_objects.0
-                view=move |cx, (id, (_, ws))| {
-                    view! { cx, <InputRow id=id writer=ws/> }
+                view=move |(id, (_, ws))| {
+                    view! { <InputRow id=id writer=ws/> }
                 }
             />
 
             <div class="flex submit-area justify-center gap-4">
-                <button class="btn btn-outline btn-success" on:click=submit_handler>"Submit"</button>
-                <button class="btn btn-outline btn-error" on:click=clear_input>"Clear Input"</button>
+                <button class="btn btn-outline btn-success" on:click=submit_handler>
+                    "Submit"
+                </button>
+                <button class="btn btn-outline btn-error" on:click=clear_input>
+                    "Clear Input"
+                </button>
             </div>
         </div>
     }
 }
 
 #[component]
-pub fn InputRow(cx: Scope, id: usize, writer: WriteSignal<Input>) -> impl IntoView {
+pub fn InputRow(id: usize, writer: WriteSignal<Input>) -> impl IntoView {
     let initial_comp_ops = vec![
         Item {
             id: "$eq",
@@ -199,43 +198,29 @@ pub fn InputRow(cx: Scope, id: usize, writer: WriteSignal<Input>) -> impl IntoVi
         },
     ];
 
-    let Fields { fields } = use_context(cx).unwrap();
+    let Fields { fields } = use_context().unwrap();
 
-    let (comp_ops, _set_comp_ops) = create_signal(cx, initial_comp_ops);
+    let (comp_ops, _set_comp_ops) = create_signal(initial_comp_ops);
 
-    let (selected_comp_op, set_selected_comp_op) = create_signal(
-        cx,
-        Item {
-            id: "default",
-            value: "Select an Operator",
-        },
-    );
-    let (selected_field, set_selected_field) = create_signal(
-        cx,
-        Item {
-            id: "default",
-            value: "Select a Field",
-        },
-    );
-    let InputUpdater { set_input_objects } = use_context(cx).unwrap();
+    let (selected_comp_op, set_selected_comp_op) = create_signal(Item {
+        id: "default",
+        value: "Select an Operator",
+    });
+    let (selected_field, set_selected_field) = create_signal(Item {
+        id: "default",
+        value: "Select a Field",
+    });
+    let InputUpdater { set_input_objects } = use_context().unwrap();
 
-    create_effect(cx, move |_| {
+    create_effect(move |_| {
         writer.update(move |input| input.comparison_op = selected_comp_op.get().id.to_string());
         writer.update(move |input| input.field = selected_field.get().id.to_string());
     });
 
-    view! { cx,
+    view! {
         <div class="input-row" id=id>
-           <Dropdown
-                items=fields
-                selected=selected_field
-                set_selected=set_selected_field
-            />
-            <Dropdown
-                items=comp_ops
-                selected=selected_comp_op
-                set_selected=set_selected_comp_op
-            />
+            <Dropdown items=fields selected=selected_field set_selected=set_selected_field/>
+            <Dropdown items=comp_ops selected=selected_comp_op set_selected=set_selected_comp_op/>
             <input
                 class="input input-bordered input-info w-full"
                 type="text"
@@ -244,27 +229,33 @@ pub fn InputRow(cx: Scope, id: usize, writer: WriteSignal<Input>) -> impl IntoVi
                 }
             />
 
-            <button class="btn btn-error" on:click=move |_| {
-                set_input_objects
-                    .update(move |inputs| inputs.retain(|(input_id, _)| input_id != &id))
-            }>"x"</button>
+            <button
+                class="btn btn-error"
+                on:click=move |_| {
+                    set_input_objects
+                        .update(move |inputs| inputs.retain(|(input_id, _)| input_id != &id))
+                }
+            >
+
+                "x"
+            </button>
         </div>
     }
 }
 
 #[component]
-pub fn OutputArea(cx: Scope) -> impl IntoView {
-    view! { cx,
+pub fn OutputArea() -> impl IntoView {
+    view! {
         <div class="output-area overflow-x-auto overflow-y-auto">
-            <OutputTable />
+            <OutputTable/>
         </div>
     }
 }
 
 #[component]
-pub fn OutputTable(cx: Scope) -> impl IntoView {
-    let Fields { fields } = use_context(cx).unwrap();
-    let QueryOutput { value } = use_context(cx).unwrap();
+pub fn OutputTable() -> impl IntoView {
+    let Fields { fields } = use_context().unwrap();
+    let QueryOutput { value } = use_context().unwrap();
     let unwrap_data = move || match value.get() {
         Some(wrapped_data) => match wrapped_data {
             Ok(data) => data,
@@ -274,45 +265,42 @@ pub fn OutputTable(cx: Scope) -> impl IntoView {
     };
 
     view! {
-        cx,
         <table class="output-table table">
             <thead>
                 <tr>
                     <For
                         each=fields
                         key=|field| field.value
-                        view=move |cx, field| {
-                        view! {
-                            cx,
-                            <th>{move || { field.value }}</th>
+                        view=move |field| {
+                            view! { <th>{move || { field.value }}</th> }
                         }
-                    }
                     />
+
                 </tr>
             </thead>
             <tbody>
                 <For
                     each=unwrap_data
                     key=|result| result.to_owned()
-                    view=move |cx, result| {
-                view! {
-                    cx,
-                    <SummaryRow data=result />
-                }
-            }
-            />
+                    view=move |result| {
+                        view! { <SummaryRow data=result/> }
+                    }
+                />
+
             </tbody>
         </table>
     }
 }
 
 #[component]
-pub fn SummaryRow(cx: Scope, data: Data) -> impl IntoView {
-    let (open, set_open) = create_signal(cx, false);
+pub fn SummaryRow(data: Data) -> impl IntoView {
+    let (open, set_open) = create_signal(false);
     let toggle = move |_| set_open(!open());
-    view! { cx,
+    view! {
         <tr class="summary-row hover" on:click=toggle>
-            <td><a href=data.caltech_href>{data.pl_name}</a></td>
+            <td>
+                <a href=data.caltech_href>{data.pl_name}</a>
+            </td>
             <td>{data.hostname}</td>
             <td>{data.sy_snum}</td>
             <td>{data.sy_pnum}</td>
@@ -320,13 +308,12 @@ pub fn SummaryRow(cx: Scope, data: Data) -> impl IntoView {
             <td>{data.cb_flag}</td>
             <td>{data.discovery_method}</td>
             <td>{data.disc_year}</td>
-            <td><a href=data.disc_refhref>{data.disc_refname}</a></td>
+            <td>
+                <a href=data.disc_refhref>{data.disc_refname}</a>
+            </td>
             <td>{data.disc_pubdate}</td>
         </tr>
-        <Show
-            when=open
-            fallback=|_| ()
-        >
+        <Show when=open fallback=|| ()>
             <tr class="bg-primary-focus">
                 <td colspan=10>
                     <div class="grid grid-cols-10 auto-cols-auto gap-4 w-full">
@@ -334,33 +321,37 @@ pub fn SummaryRow(cx: Scope, data: Data) -> impl IntoView {
                             <div class="justify-self-center">"Planet Letter"</div>
                             <div>{data.pl_letter.to_owned()}</div>
                         </div>
-                        <div>
-                            <div>"Planet Letter"</div>
-                            <div></div>
+                        <div class="grid grid-cols-1">
+                            <div class="justify-self-center">"Orbital Period [days]"</div>
+                            <SupSub text={data.pl_orbper.to_owned()} sup={data.pl_orbpererr1.to_owned()} sub={data.pl_orbpererr2.to_owned()} />
                         </div>
-                        <div>
-                            <div>"Planet Letter"</div>
-                            <div></div>
+                        <div class="grid grid-cols-1">
+                            <div class="justify-self-center">"Planet Radius [Earth Radius]"</div>
+                            <SupSub text={data.pl_rade.to_owned()} sup={data.pl_radeerr1.to_owned()} sub={data.pl_radeerr2.to_owned()} />
                         </div>
-                        <div>
-                            <div>"Planet Letter"</div>
-                            <div></div>
+                        <div class="grid grid-cols-1">
+                            <div class="justify-self-center">"Planet Mass [Earth Mass]"</div>
+                            <SupSub text={data.pl_bmasse.to_owned()} sup={data.pl_bmasseerr1.to_owned()} sub={data.pl_bmasseerr2.to_owned()} />
                         </div>
-                        <div>
-                            <div>"Planet Letter"</div>
-                            <div></div>
+                        <div class="grid grid-cols-1">
+                            <div class="justify-self-center">"Planet Mass Estimation Formula"</div>
+                            <div>{data.pl_bmassprov.to_owned()}</div>
                         </div>
-                        <div>
-                            <div>"Planet Letter"</div>
-                            <div></div>
+                        <div class="grid grid-cols-1">
+                            <div class="justify-self-center">"Discovery Facility"</div>
+                            <div>{data.disc_facility.to_owned()}</div>
                         </div>
-                        <div>
-                            <div>"Planet Letter"</div>
-                            <div></div>
+                        <div class="grid grid-cols-1">
+                            <div class="justify-self-center">"Spectral Type"</div>
+                            <div>{data.st_spectype.to_owned()}</div>
                         </div>
-                        <div>
-                            <div>"Planet Letter"</div>
-                            <div></div>
+                        <div class="grid grid-cols-1">
+                            <div class="justify-self-center">"Discovery Telescope"</div>
+                            <div>{data.disc_telescope.to_owned()}</div>
+                        </div>
+                        <div class="grid grid-cols-1">
+                            <div class="justify-self-center">"Release Date"</div>
+                            <div>{data.release_date.to_owned()}</div>
                         </div>
                     </div>
                 </td>
@@ -370,38 +361,54 @@ pub fn SummaryRow(cx: Scope, data: Data) -> impl IntoView {
 }
 
 #[component]
+pub fn SupSub(text: Option<String>, sup: Option<String>, sub: Option<String>) -> impl IntoView {
+    let unwrapped_text = text.unwrap_or("".to_string());
+    let unwrapped_sub = sub.unwrap_or("".to_string());
+    let unwrapped_sup = sup.unwrap_or("".to_string());
+
+    view! {
+        <div>
+            {unwrapped_text} <span class="supsub">
+                <sup>{unwrapped_sup}</sup>
+                <sub>{unwrapped_sub}</sub>
+            </span>
+        </div>
+    }
+}
+
+#[component]
 pub fn Dropdown(
-    cx: Scope,
     items: ReadSignal<Vec<Item>>,
     selected: ReadSignal<Item>,
     set_selected: WriteSignal<Item>,
 ) -> impl IntoView {
-    let (open, set_open) = create_signal(cx, false);
-    view! { cx,
+    let (open, set_open) = create_signal(false);
+    view! {
         <details class="dropdown" value=move || selected().id.to_string() prop:open=open>
             <summary class="btn btn-outline btn-info m-1">
                 {move || selected().value.to_string()}
             </summary>
-                <ul class="dropdown-content z-[1] menu shadow bg-base-200 rounded-box w-52">
-                    <For
-                        each=items
-                        key=|item| item.id
-                        view=move |cx, item| {
-                            view! { cx,
-                                <li
-                                    value=item.id
-                                    on:click=move |_| {
-                                        set_open(false);
-                                        set_selected(item);
-                                    }
-                                >
-                                    {move || item.value}
-                                </li>
-                            }
-                        }
-                    />
+            <ul class="dropdown-content z-[1] menu shadow bg-base-200 rounded-box w-52">
+                <For
+                    each=items
+                    key=|item| item.id
+                    view=move |item| {
+                        view! {
+                            <li
+                                value=item.id
+                                on:click=move |_| {
+                                    set_open(false);
+                                    set_selected(item);
+                                }
+                            >
 
-                </ul>
+                                {move || item.value}
+                            </li>
+                        }
+                    }
+                />
+
+            </ul>
         </details>
     }
 }

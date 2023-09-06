@@ -36,6 +36,22 @@ body {
 
 }
 
+.supsub sup,
+.supsub sub {
+  position: relative;
+  display: block;
+  font-size: 0.7em;
+  line-height: 1.2;
+}
+
+.supsub {
+  display: inline-block;
+}
+
+.supsub sub {
+  top: 0.3em;
+}
+
 .drop-down button {
   min-width: 10rem;
 }

@@ -1,6 +1,6 @@
+pub mod api;
 pub mod app;
 pub mod model;
-pub mod api;
 use cfg_if::cfg_if;
 
 cfg_if! {
@@ -15,8 +15,8 @@ if #[cfg(feature = "hydrate")] {
 
       console_error_panic_hook::set_once();
 
-      leptos::mount_to_body(move |cx| {
-          view! { cx, <App/> }
+      leptos::mount_to_body(move || {
+          view! { <App/> }
       });
     }
 }
