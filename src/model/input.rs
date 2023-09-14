@@ -1,5 +1,4 @@
-use serde::{Serialize, Deserialize};
-
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Query {
@@ -8,31 +7,25 @@ pub struct Query {
 
 impl Query {
     pub fn new() -> Query {
-        Query {
-            inputs: Vec::new(),
-        }
+        Query { inputs: Vec::new() }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Input {
-    pub logical_op: String,
     pub field: String,
-    pub comparison_op: String, 
+    pub comparison_op: String,
     pub value: String,
 }
 
 impl Input {
     pub fn new() -> Input {
         Input {
-            logical_op: "".to_string(),
             field: "".to_string(),
             comparison_op: "".to_string(),
-            value: "".to_string(), 
+            value: "".to_string(),
         }
     }
-
-    
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

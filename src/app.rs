@@ -316,41 +316,41 @@ pub fn SummaryRow(data: Data) -> impl IntoView {
         <Show when=open fallback=|| ()>
             <tr class="bg-primary-focus">
                 <td colspan=10>
-                    <div class="grid grid-cols-10 auto-cols-auto gap-4 w-full">
+                    <div class="grid grid-cols-10 auto-cols-max gap-4 grid-flow-col">
                         <div class="grid grid-cols-1">
-                            <div class="justify-self-center">"Planet Letter"</div>
+                            <div>"Planet Letter"</div>
                             <div>{data.pl_letter.to_owned()}</div>
                         </div>
                         <div class="grid grid-cols-1">
-                            <div class="justify-self-center">"Orbital Period [days]"</div>
+                            <div>"Orbital Period [days]"</div>
                             <SupSub text={data.pl_orbper.to_owned()} sup={data.pl_orbpererr1.to_owned()} sub={data.pl_orbpererr2.to_owned()} />
                         </div>
                         <div class="grid grid-cols-1">
-                            <div class="justify-self-center">"Planet Radius [Earth Radius]"</div>
+                            <div>"Planet Radius [Earth Radius]"</div>
                             <SupSub text={data.pl_rade.to_owned()} sup={data.pl_radeerr1.to_owned()} sub={data.pl_radeerr2.to_owned()} />
                         </div>
                         <div class="grid grid-cols-1">
-                            <div class="justify-self-center">"Planet Mass [Earth Mass]"</div>
+                            <div>"Planet Mass [Earth Mass]"</div>
                             <SupSub text={data.pl_bmasse.to_owned()} sup={data.pl_bmasseerr1.to_owned()} sub={data.pl_bmasseerr2.to_owned()} />
                         </div>
                         <div class="grid grid-cols-1">
-                            <div class="justify-self-center">"Planet Mass Estimation Formula"</div>
+                            <div>"Planet Mass Estimation Formula"</div>
                             <div>{data.pl_bmassprov.to_owned()}</div>
                         </div>
                         <div class="grid grid-cols-1">
-                            <div class="justify-self-center">"Discovery Facility"</div>
+                            <div>"Discovery Facility"</div>
                             <div>{data.disc_facility.to_owned()}</div>
                         </div>
                         <div class="grid grid-cols-1">
-                            <div class="justify-self-center">"Spectral Type"</div>
+                            <div>"Spectral Type"</div>
                             <div>{data.st_spectype.to_owned()}</div>
                         </div>
                         <div class="grid grid-cols-1">
-                            <div class="justify-self-center">"Discovery Telescope"</div>
+                            <div>"Discovery Telescope"</div>
                             <div>{data.disc_telescope.to_owned()}</div>
                         </div>
                         <div class="grid grid-cols-1">
-                            <div class="justify-self-center">"Release Date"</div>
+                            <div>"Release Date"</div>
                             <div>{data.release_date.to_owned()}</div>
                         </div>
                     </div>

@@ -4,43 +4,40 @@ use leptos::*;
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
-        use mongodb::{Client, options::ClientOptions, bson::Document, bson::doc};
         use futures::stream::TryStreamExt;
+        use sqlx::{ Connection, SqliteConnection, QueryBuilder, Sqlite };
 
+        pub async fn db() -> Result<SqliteConnection, ServerFnError> {
+            use dotenvy::dotenv;
+            use std::env;
 
-        pub async fn get_client() -> Result<Client, ServerFnError> {
-            let uri = "mongodb://localhost:27017";
-            let client_options = ClientOptions::parse(uri).await?;
-            Ok(Client::with_options(client_options)?)
-
+            dotenv()?;
+            Ok(SqliteConnection::connect(&env::var("DATABASE_URL")?).await?)
         }
 
-        pub async fn find_records(query: Vec<Input>) -> Result<Vec<Data>, ServerFnError> {
-            let client = get_client().await?;
-            let collection = client.database("exoplannetdata-href-extract").collection::<Data>("data");
-
-            let mut query_doc = Document::new();
-
-            let default_flag = doc! { "$eq" : "1" };
-            query_doc.insert("default_flag", default_flag);
+        pub async fn find_records(mut query: Vec<Input>) -> Result<Vec<Data>, ServerFnError> {
+            let mut builder: QueryBuilder<Sqlite> = QueryBuilder::new("select * from exoplanet_data");
+            if !query.is_empty() {
+                builder.push(" where");
+                let first = query.pop().unwrap();
+                builder.push(" ".to_owned() + first.field.as_str() + " " + first.comparison_op.as_str() + " ");
+                builder.push_bind(first.value);
+            }
 
             for input in query {
-                let doc = doc! { input.comparison_op : input.value };
-                query_doc.insert(input.field, doc);
+                builder.push(" and ".to_owned() + input.field.as_str() + " " + input.comparison_op.as_str() + " ");
+                builder.push_bind(input.value);
             }
 
-            let mut cursor = collection.find(query_doc, None).await?;
-
+            let mut conn = db().await?;
             let mut data = Vec::new();
+            let mut rows = builder.build_query_as::<'_, Data>().fetch(&mut conn);
 
-            while let Some(doc) = cursor.try_next().await? {
-                data.push(doc);
+            while let Some(row) = rows.try_next().await? {
+                data.push(row);
             }
-
-            data.dedup();
 
             Ok(data)
-
         }
     }
 }
@@ -49,11 +46,11 @@ cfg_if! {
 pub async fn query_db(query: Vec<Input>) -> Result<Vec<Data>, ServerFnError> {
     match find_records(query).await {
         Ok(results) => {
-            log!("Found {} results!", results.len());
+            leptos::logging::log!("Found {} results!", results.len());
             Ok(results)
         }
         Err(error) => {
-            leptos::error!("{}", error);
+            leptos::logging::error!("{}", error);
             Err(error)
         }
     }

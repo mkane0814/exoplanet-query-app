@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hash, Eq)]
+#[cfg_attr(feature = "ssr", derive(sqlx::FromRow))]
 pub struct Data {
     pub pl_name: String,
     pub hostname: String,
