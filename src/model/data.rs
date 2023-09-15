@@ -12,6 +12,7 @@ pub struct Data {
     pub cb_flag: String,
 
     #[serde(rename = "discoverymethod")]
+    #[cfg_attr(feature = "ssr", sqlx(rename = "discoverymethod"))]
     pub discovery_method: Option<String>,
 
     pub disc_year: String,

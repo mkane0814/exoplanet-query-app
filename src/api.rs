@@ -16,7 +16,7 @@ cfg_if! {
         }
 
         pub async fn find_records(mut query: Vec<Input>) -> Result<Vec<Data>, ServerFnError> {
-            let mut builder: QueryBuilder<Sqlite> = QueryBuilder::new("select * from exoplanet_data");
+            let mut builder: QueryBuilder<Sqlite> = QueryBuilder::new("select discoverymethod as discovery_method, releasedate as release_date, * from exoplanet_data");
             if !query.is_empty() {
                 builder.push(" where");
                 let first = query.pop().unwrap();

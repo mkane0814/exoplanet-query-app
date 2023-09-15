@@ -37,7 +37,7 @@ pub fn App() -> impl IntoView {
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/leptos_start.css"/>
+        <Stylesheet id="leptos" href="/pkg/exoplanet_query_app.css"/>
         <Link rel="icon" type_="image/x-icon" href="/assets/favicon.ico"/>
         <div class="bg-neutral"></div>
         // sets the document title
@@ -173,27 +173,27 @@ pub fn InputArea(query_action: Action<QueryDb, Result<Vec<Data>, ServerFnError>>
 pub fn InputRow(id: usize, writer: WriteSignal<Input>) -> impl IntoView {
     let initial_comp_ops = vec![
         Item {
-            id: "$eq",
+            id: "=",
             value: "=",
         },
         Item {
-            id: "$ne",
+            id: "!=",
             value: "!=",
         },
         Item {
-            id: "$lt",
+            id: "<",
             value: "<",
         },
         Item {
-            id: "$gt",
+            id: ">",
             value: ">",
         },
         Item {
-            id: "$gte",
+            id: ">=",
             value: ">=",
         },
         Item {
-            id: "$lte",
+            id: "<=",
             value: "<=",
         },
     ];
