@@ -1,18 +1,25 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hash, Eq)]
-#[cfg_attr(feature = "ssr", derive(sqlx::FromRow))]
 pub struct Data {
+    pub planet_data: Vec<PlanetData>,
+    pub last_id: i64,
+    pub first_id: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hash, Eq)]
+#[cfg_attr(feature = "ssr", derive(sqlx::FromRow))]
+pub struct PlanetData {
     pub pl_name: String,
     pub hostname: String,
     pub pl_letter: String,
     pub sy_snum: String,
     pub sy_pnum: String,
     pub sy_mnum: String,
-    pub cb_flag: String,
+    pub cb_flag: u8,
+    pub default_flag: bool,
 
     #[serde(rename = "discoverymethod")]
-    #[cfg_attr(feature = "ssr", sqlx(rename = "discoverymethod"))]
     pub discovery_method: Option<String>,
 
     pub disc_year: String,
@@ -35,4 +42,5 @@ pub struct Data {
     pub release_date: String,
     pub st_spectype: Option<String>,
     pub disc_facility: String,
+    pub id: i64,
 }

@@ -29,6 +29,19 @@ impl Input {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PageKind {
+    Next,
+    Prev,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Page {
+    pub kind: PageKind,
+    pub last_id: i64,
+    pub first_id: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LogicalOperators {
     And(String),
     Or(String),

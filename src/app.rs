@@ -1,6 +1,9 @@
 use crate::{
     api::QueryDb,
-    model::{data::Data, input::Input},
+    model::{
+        data::{Data, PlanetData},
+        input::{Input, PageKind},
+    },
 };
 use leptos::*;
 use leptos_meta::*;
@@ -19,8 +22,20 @@ struct Fields {
 }
 
 #[derive(Clone, Copy)]
+struct LastId {
+    last_id: ReadSignal<i64>,
+    set_last_id: WriteSignal<i64>,
+}
+
+#[derive(Clone, Copy)]
+struct FirstId {
+    first_id: ReadSignal<i64>,
+    set_first_id: WriteSignal<i64>,
+}
+
+#[derive(Clone, Copy)]
 struct QueryOutput {
-    value: ReadSignal<Option<Result<Vec<Data>, ServerFnError>>>,
+    value: ReadSignal<Option<Result<Option<Data>, ServerFnError>>>,
 }
 
 #[derive(Clone, Copy)]
@@ -96,8 +111,18 @@ pub fn Home() -> impl IntoView {
         },
     ];
 
+    let (last_id, set_last_id) = create_signal(0);
+    let (first_id, set_first_id) = create_signal(0);
     let (fields, _) = create_signal(initial_fields);
     let query_action = create_server_action::<QueryDb>();
+    provide_context(LastId {
+        last_id,
+        set_last_id,
+    });
+    provide_context(FirstId {
+        first_id,
+        set_first_id,
+    });
     provide_context(Fields { fields });
     provide_context(QueryOutput {
         value: query_action.value().read_only(),
@@ -110,7 +135,9 @@ pub fn Home() -> impl IntoView {
 }
 
 #[component]
-pub fn InputArea(query_action: Action<QueryDb, Result<Vec<Data>, ServerFnError>>) -> impl IntoView {
+pub fn InputArea(
+    query_action: Action<QueryDb, Result<Option<Data>, ServerFnError>>,
+) -> impl IntoView {
     let initial_size = 1;
     let mut next_counter_id = initial_size;
 
@@ -121,6 +148,16 @@ pub fn InputArea(query_action: Action<QueryDb, Result<Vec<Data>, ServerFnError>>
     let (input_objects, set_input_objects) = create_signal(initial_inputs);
 
     provide_context(InputUpdater { set_input_objects });
+
+    let LastId {
+        last_id,
+        set_last_id: _,
+    } = use_context().unwrap();
+
+    let FirstId {
+        first_id,
+        set_first_id: _,
+    } = use_context().unwrap();
 
     let add_input = move |_| {
         let sig = create_signal(Input::new());
@@ -139,7 +176,37 @@ pub fn InputArea(query_action: Action<QueryDb, Result<Vec<Data>, ServerFnError>>
         for (_id, (rs, _ws)) in input_objects.get() {
             inputs.push(rs.get());
         }
-        query_action.dispatch(QueryDb { query: inputs });
+        query_action.dispatch(QueryDb {
+            query: inputs,
+            anchor_id: 0i64,
+            page_direction: PageKind::Next,
+        });
+    };
+
+    let next_page = move |_| {
+        let mut inputs = Vec::<Input>::new();
+
+        for (_id, (rs, _ws)) in input_objects.get() {
+            inputs.push(rs.get());
+        }
+
+        query_action.dispatch(QueryDb {
+            query: inputs,
+            anchor_id: last_id.get(),
+            page_direction: PageKind::Next,
+        });
+    };
+
+    let prev_page = move |_| {
+        let mut inputs = Vec::<Input>::new();
+        for (_id, (rs, _ws)) in input_objects.get() {
+            inputs.push(rs.get());
+        }
+        query_action.dispatch(QueryDb {
+            query: inputs,
+            anchor_id: first_id.get(),
+            page_direction: PageKind::Prev,
+        });
     };
 
     view! {
@@ -157,13 +224,17 @@ pub fn InputArea(query_action: Action<QueryDb, Result<Vec<Data>, ServerFnError>>
                 }
             />
 
-            <div class="flex submit-area justify-center gap-4">
-                <button class="btn btn-outline btn-success" on:click=submit_handler>
+            <div class="divider"></div>
+
+            <div class="join grid grid-cols-4 submit-area gap-4">
+                <button class="join-item btn btn-outline btn-success" on:click=submit_handler>
                     "Submit"
                 </button>
-                <button class="btn btn-outline btn-error" on:click=clear_input>
+                <button class="join-item btn btn-outline btn-error" on:click=clear_input>
                     "Clear Input"
                 </button>
+                <button class="join-item btn btn-outline" on:click=prev_page>"Previous Page"</button>
+                <button class="join-item btn btn-outline" on:click=next_page>"Next"</button>
             </div>
         </div>
     }
@@ -222,7 +293,7 @@ pub fn InputRow(id: usize, writer: WriteSignal<Input>) -> impl IntoView {
             <Dropdown items=fields selected=selected_field set_selected=set_selected_field/>
             <Dropdown items=comp_ops selected=selected_comp_op set_selected=set_selected_comp_op/>
             <input
-                class="input input-bordered input-info w-full"
+                class="input input-bordered input-sm input-info w-full"
                 type="text"
                 on:input=move |ev| {
                     writer.update(move |input| input.value = event_target_value(&ev))
@@ -230,7 +301,7 @@ pub fn InputRow(id: usize, writer: WriteSignal<Input>) -> impl IntoView {
             />
 
             <button
-                class="btn btn-error"
+                class="btn btn-sm btn-error"
                 on:click=move |_| {
                     set_input_objects
                         .update(move |inputs| inputs.retain(|(input_id, _)| input_id != &id))
@@ -256,9 +327,25 @@ pub fn OutputArea() -> impl IntoView {
 pub fn OutputTable() -> impl IntoView {
     let Fields { fields } = use_context().unwrap();
     let QueryOutput { value } = use_context().unwrap();
+    let LastId {
+        last_id: _,
+        set_last_id,
+    } = use_context().unwrap();
+    let FirstId {
+        first_id: _,
+        set_first_id,
+    } = use_context().unwrap();
     let unwrap_data = move || match value.get() {
         Some(wrapped_data) => match wrapped_data {
-            Ok(data) => data,
+            Ok(data_opt) => {
+                if let Some(data) = data_opt {
+                    set_last_id.update(move |last_id| *last_id = data.last_id);
+                    set_first_id.update(move |first_id| *first_id = data.first_id);
+                    data.planet_data
+                } else {
+                    Vec::new()
+                }
+            }
             Err(_) => Vec::new(),
         },
         None => Vec::new(),
@@ -293,7 +380,7 @@ pub fn OutputTable() -> impl IntoView {
 }
 
 #[component]
-pub fn SummaryRow(data: Data) -> impl IntoView {
+pub fn SummaryRow(data: PlanetData) -> impl IntoView {
     let (open, set_open) = create_signal(false);
     let toggle = move |_| set_open(!open());
     view! {
@@ -385,7 +472,7 @@ pub fn Dropdown(
     let (open, set_open) = create_signal(false);
     view! {
         <details class="dropdown" value=move || selected().id.to_string() prop:open=open>
-            <summary class="btn btn-outline btn-info m-1">
+            <summary class="btn btn-outline btn-sm btn-info m-1">
                 {move || selected().value.to_string()}
             </summary>
             <ul class="dropdown-content z-[1] menu shadow bg-base-200 rounded-box w-52">
