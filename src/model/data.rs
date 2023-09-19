@@ -7,6 +7,30 @@ pub struct Data {
     pub first_id: i64,
 }
 
+impl Data {
+    pub fn build(mut data_vec: Vec<PlanetData>) -> Option<Data> {
+        data_vec.sort_unstable_by(|a, b| a.id.cmp(&b.id));
+        if let Some(last_entry) = data_vec.last() {
+            if let Some(first_entry) = data_vec.first() {
+                let last_id = last_entry.id;
+                let first_id = first_entry.id;
+                leptos::logging::log!("First ID: {}", first_id);
+                leptos::logging::log!("Last ID: {}", last_id);
+                let data = Data {
+                    planet_data: data_vec,
+                    last_id,
+                    first_id,
+                };
+                Some(data)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "ssr", derive(sqlx::FromRow))]
 pub struct PlanetData {

@@ -35,51 +35,16 @@ cfg_if! {
                     let mut conn = db().await?;
                     let planet_data = builder.build_query_as::<'_, PlanetData>().fetch_all(&mut conn).await?;
 
-                    if let Some(last_entry) = planet_data.last() {
-                        if let Some(first_entry) = planet_data.first() {
-                            let last_id = last_entry.id;
-                            let first_id = first_entry.id;
-                            leptos::logging::log!("First ID: {}", first_id);
-                            leptos::logging::log!("Last ID: {}", last_id);
-                            let data = Data {
-                                planet_data,
-                                last_id,
-                                first_id,
-                            };
-                            Ok(Some(data))
-                        } else {
-                            Ok(None)
-                        }
-                    } else {
-                        Ok(None)
-                    }
+                    Ok(Data::build(planet_data))
                 },
                 PageKind::Prev => {
                     builder.push(" AND id < ");
                     builder.push_bind(anchor_id);
                     builder.push(" ORDER BY id DESC LIMIT 100;");
                     let mut conn = db().await?;
-                    let mut planet_data = builder.build_query_as::<'_, PlanetData>().fetch_all(&mut conn).await?;
+                    let planet_data = builder.build_query_as::<'_, PlanetData>().fetch_all(&mut conn).await?;
 
-                    if let Some(last_entry) = planet_data.last() {
-                        if let Some(first_entry) = planet_data.first() {
-                            let last_id = last_entry.id;
-                            let first_id = first_entry.id;
-                            leptos::logging::log!("First ID: {}", last_id);
-                            leptos::logging::log!("Last ID: {}", first_id);
-                            planet_data.sort_unstable_by(|a, b| a.id.cmp(&b.id));
-                            let data = Data {
-                                planet_data,
-                                first_id: last_id,
-                                last_id: first_id,
-                            };
-                            Ok(Some(data))
-                        } else {
-                            Ok(None)
-                        }
-                    } else {
-                        Ok(None)
-                    }
+                    Ok(Data::build(planet_data))
                 },
             }
         }
