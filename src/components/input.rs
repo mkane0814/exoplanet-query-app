@@ -289,6 +289,7 @@ pub fn InputRow(id: usize, writer: WriteSignal<Input>) -> impl IntoView {
                         .update(move |inputs| inputs.retain(|(input_id, _)| input_id != &id))
                 }
             >
+
                 "x"
             </button>
         </div>

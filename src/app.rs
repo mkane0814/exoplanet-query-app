@@ -64,6 +64,7 @@ pub fn QueryTabWrapper() -> impl IntoView {
                                 current_active_tab.update(move |stored_id| *stored_id = id)
                             }
                         >
+
                             {format!("Tab {}", id + 1)}
                         </button>
                         <button
@@ -72,10 +73,10 @@ pub fn QueryTabWrapper() -> impl IntoView {
                             on:click=move |_| {
                                 set_tabs
                                     .update(move |tabs| tabs.retain(|(tab_id, _)| tab_id != &id));
-
                             }
                         >
-                        "x"
+
+                            "x"
                         </button>
                     }
                 }
@@ -90,10 +91,7 @@ pub fn QueryTabWrapper() -> impl IntoView {
             key=|tab| tab.0
             view=move |(id, (_rs, _ws))| {
                 view! {
-                    <Show
-                        when=move || current_active_tab.get() == id
-                        fallback=|| ()
-                    >
+                    <Show when=move || current_active_tab.get() == id fallback=|| ()>
                         <Home id/>
                     </Show>
                 }
