@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use crate::{
     components::input::{Fields, FirstId, LastId, QueryOutput},
     model::data::PlanetData,

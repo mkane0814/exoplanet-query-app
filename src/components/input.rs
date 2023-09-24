@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use crate::{
     api::QueryDb,
     components::output::OutputArea,
