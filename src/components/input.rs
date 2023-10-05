@@ -16,6 +16,7 @@ type InputHolder = Vec<(usize, (ReadSignal<Input>, WriteSignal<Input>))>;
 pub struct Item {
     pub id: &'static str,
     pub value: &'static str,
+    pub fe_id: usize,
 }
 
 #[derive(Clone, Copy)]
@@ -51,42 +52,52 @@ pub fn Home(id: usize) -> impl IntoView {
         Item {
             id: "pl_name",
             value: "Planet Name",
+            fe_id: 0,
         },
         Item {
             id: "hostname",
             value: "Host Name",
+            fe_id: 1,
         },
         Item {
             id: "sy_snum",
             value: "Number of Stars",
+            fe_id: 2,
         },
         Item {
             id: "sy_pnum",
             value: "Number of Planets",
+            fe_id: 3,
         },
         Item {
             id: "sy_mnum",
             value: "Number of Moons",
+            fe_id: 4,
         },
         Item {
             id: "cb_flag",
             value: "Circumbinary Flag",
+            fe_id: 5,
         },
         Item {
             id: "discovery_method",
             value: "Discovery Method",
+            fe_id: 6,
         },
         Item {
             id: "disc_year",
             value: "Discovery Year",
+            fe_id: 7,
         },
         Item {
             id: "disc_refname",
             value: "Discovery Reference",
+            fe_id: 8,
         },
         Item {
             id: "disc_pubdate",
             value: "Discovery Publication Date",
+            fe_id: 9,
         },
     ];
 
@@ -199,7 +210,7 @@ pub fn InputArea(
             <For
                 each=input_objects
                 key=|input_objects| input_objects.0
-                view=move |(id, (_, ws))| {
+                children=move |(id, (_, ws))| {
                     view! { <InputRow id=id writer=ws/> }
                 }
             />
@@ -230,26 +241,32 @@ pub fn InputRow(id: usize, writer: WriteSignal<Input>) -> impl IntoView {
         Item {
             id: "=",
             value: "=",
+            fe_id: 0,
         },
         Item {
             id: "!=",
             value: "!=",
+            fe_id: 1,
         },
         Item {
             id: "<",
             value: "<",
+            fe_id: 2,
         },
         Item {
             id: ">",
             value: ">",
+            fe_id: 3,
         },
         Item {
             id: ">=",
             value: ">=",
+            fe_id: 4,
         },
         Item {
             id: "<=",
             value: "<=",
+            fe_id: 5,
         },
     ];
 
@@ -260,10 +277,12 @@ pub fn InputRow(id: usize, writer: WriteSignal<Input>) -> impl IntoView {
     let (selected_comp_op, set_selected_comp_op) = create_signal(Item {
         id: "default",
         value: "Select an Operator",
+        fe_id: 0,
     });
     let (selected_field, set_selected_field) = create_signal(Item {
         id: "default",
         value: "Select a Field",
+        fe_id: 0,
     });
     let InputUpdater { set_input_objects } = use_context().unwrap();
 
@@ -311,24 +330,18 @@ pub fn Dropdown(
                 {move || selected().value.to_string()}
             </summary>
             <ul class="dropdown-content z-[1] menu shadow bg-base-200 rounded-box w-52">
-                <For
-                    each=items
-                    key=|item| item.id
-                    view=move |item| {
-                        view! {
-                            <li
-                                value=item.id
-                                on:click=move |_| {
-                                    set_open(false);
-                                    set_selected(item);
-                                }
-                            >
-
-                                {move || item.value}
-                            </li>
+                <For each=items key=|item| item.fe_id let:item>
+                    <li
+                        value=item.id
+                        on:click=move |_| {
+                            set_open(false);
+                            set_selected(item);
                         }
-                    }
-                />
+                    >
+
+                        {move || item.value}
+                    </li>
+                </For>
 
             </ul>
         </details>

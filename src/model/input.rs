@@ -11,6 +11,12 @@ impl Query {
     }
 }
 
+impl Default for Query {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Input {
     pub field: String,
@@ -25,6 +31,12 @@ impl Input {
             comparison_op: "".to_string(),
             value: "".to_string(),
         }
+    }
+}
+
+impl Default for Input {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

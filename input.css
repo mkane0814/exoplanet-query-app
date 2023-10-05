@@ -8,25 +8,6 @@
   }
 }
 
-body {
-	font-family: sans-serif;
-	text-align: center;
-  color: #fff;
-  height: 100%;
-  margin: 0;
-
-}
-
-.bg {
-  background-image: linear-gradient(to right bottom, #051937, #0e1c3e, #171f45, #20224b, #2a2451, #362453, #422353, #4d2253, #5b1e4d, #661a45, #6f183b, #751a31);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-}
-
 .input-row {
   display: flex; 
   margin: 2px;

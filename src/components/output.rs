@@ -49,11 +49,11 @@ pub fn OutputTable() -> impl IntoView {
                 <tr>
                     <For
                         each=fields
-                        key=|field| field.value
-                        view=move |field| {
-                            view! { <th>{move || { field.value }}</th> }
-                        }
-                    />
+                        key=|field| field.fe_id
+                        let:field
+                    >
+                            <th>{move || { field.value }}</th>
+                    </For>
 
                 </tr>
             </thead>
@@ -61,10 +61,11 @@ pub fn OutputTable() -> impl IntoView {
                 <For
                     each=unwrap_data
                     key=|result| result.to_owned()
-                    view=move |result| {
-                        view! { <SummaryRow data=result/> }
-                    }
-                />
+                    let:result
+                >
+                       <SummaryRow data=result/>
+
+                </For>
 
             </tbody>
         </table>
