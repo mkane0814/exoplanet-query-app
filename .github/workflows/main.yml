@@ -71,6 +71,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          target: wasm21-unknown-unknown
           override: true
       - uses: baptiste0928/cargo-install@v2
         with:
