@@ -67,7 +67,20 @@ jobs:
     name: Leptos Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-18-node_modules-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Compile TailwindCSS
+        run: npx tailwindcss -i ./input.css -o ./style/output.css
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -76,5 +89,6 @@ jobs:
       - uses: baptiste0928/cargo-install@v2
         with:
           crate: cargo-leptos
+
       - name: Run cargo leptos build
         run: cargo leptos build --release -vv
