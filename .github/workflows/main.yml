@@ -79,6 +79,9 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-18-node_modules-${{ hashFiles('**/package-lock.json') }}
 
+      - name: Install Node Dependencies
+        run: npm install
+
       - name: Compile TailwindCSS
         run: npx tailwindcss -i ./input.css -o ./style/output.css
       - uses: actions-rs/toolchain@v1
