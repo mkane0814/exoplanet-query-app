@@ -73,7 +73,9 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-      - run: cargo install cargo-leptos
+      - uses: actions-rs/cargo@v1
+        with:
+          command: cargo install cargo-leptos
       - uses: actions-rs/cargo@v1
         with:
           command: leptos build
