@@ -72,10 +72,8 @@ jobs:
         with:
           toolchain: nightly
           override: true
-      - uses: actions-rs/cargo@v1
+      - uses: baptiste0928/cargo-install@v2
         with:
-          command: install cargo-leptos
-      - uses: actions-rs/cargo@v1
-        with:
-          command: leptos build
-          args: --release -vv
+          crate: cargo-leptos
+      - name: Run cargo leptos build
+        run: cargo leptos build --release -vv
