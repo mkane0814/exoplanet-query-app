@@ -39,7 +39,6 @@ pub struct PlanetData {
     pub pl_letter: String,
     pub sy_snum: String,
     pub sy_pnum: String,
-    pub sy_mnum: String,
     pub cb_flag: u8,
     pub default_flag: bool,
 

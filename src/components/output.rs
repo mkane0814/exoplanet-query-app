@@ -87,7 +87,6 @@ pub fn SummaryRow(data: PlanetData) -> impl IntoView {
             <td>{data.hostname}</td>
             <td>{data.sy_snum}</td>
             <td>{data.sy_pnum}</td>
-            <td>{data.sy_mnum}</td>
             <td>{data.cb_flag}</td>
             <td>{data.discovery_method}</td>
             <td>{data.disc_year}</td>
@@ -99,12 +98,12 @@ pub fn SummaryRow(data: PlanetData) -> impl IntoView {
         <Show when=open fallback=|| ()>
             <tr class="bg-primary-focus">
                 <td colspan=10>
-                    <div class="grid grid-cols-10 auto-cols-max gap-4 grid-flow-col">
-                        <div class="grid grid-cols-1">
+                    <div class="grid grid-flow-col">
+                        <div class="grid grid-cols-1 gap-[0.5rem]">
                             <div>"Planet Letter"</div>
                             <div>{data.pl_letter.to_owned()}</div>
                         </div>
-                        <div class="grid grid-cols-1">
+                        <div class="grid grid-cols-1 gap-[0.5rem]">
                             <div>"Orbital Period [days]"</div>
                             <SupSub
                                 text=data.pl_orbper.to_owned()
@@ -112,7 +111,7 @@ pub fn SummaryRow(data: PlanetData) -> impl IntoView {
                                 sub=data.pl_orbpererr2.to_owned()
                             />
                         </div>
-                        <div class="grid grid-cols-1">
+                        <div class="grid grid-cols-1 gap-[0.5rem]">
                             <div>"Planet Radius [Earth Radius]"</div>
                             <SupSub
                                 text=data.pl_rade.to_owned()
@@ -120,7 +119,7 @@ pub fn SummaryRow(data: PlanetData) -> impl IntoView {
                                 sub=data.pl_radeerr2.to_owned()
                             />
                         </div>
-                        <div class="grid grid-cols-1">
+                        <div class="grid grid-cols-1 gap-[0.5rem]">
                             <div>"Planet Mass [Earth Mass]"</div>
                             <SupSub
                                 text=data.pl_bmasse.to_owned()
@@ -128,23 +127,23 @@ pub fn SummaryRow(data: PlanetData) -> impl IntoView {
                                 sub=data.pl_bmasseerr2.to_owned()
                             />
                         </div>
-                        <div class="grid grid-cols-1">
+                        <div class="grid grid-cols-1 gap-[0.5rem]">
                             <div>"Planet Mass Estimation Formula"</div>
                             <div>{data.pl_bmassprov.to_owned()}</div>
                         </div>
-                        <div class="grid grid-cols-1">
+                        <div class="grid grid-cols-1 gap-[0.5rem]">
                             <div>"Discovery Facility"</div>
                             <div>{data.disc_facility.to_owned()}</div>
                         </div>
-                        <div class="grid grid-cols-1">
+                        <div class="grid grid-cols-1 gap-[0.5rem]">
                             <div>"Spectral Type"</div>
                             <div>{data.st_spectype.to_owned()}</div>
                         </div>
-                        <div class="grid grid-cols-1">
+                        <div class="grid grid-cols-1 gap-[0.5rem]">
                             <div>"Discovery Telescope"</div>
                             <div>{data.disc_telescope.to_owned()}</div>
                         </div>
-                        <div class="grid grid-cols-1">
+                        <div class="grid grid-cols-1 gap-[0.5rem]">
                             <div>"Release Date"</div>
                             <div>{data.release_date.to_owned()}</div>
                         </div>

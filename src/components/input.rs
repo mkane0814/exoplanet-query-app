@@ -70,11 +70,6 @@ pub fn Home() -> impl IntoView {
             fe_id: 3,
         },
         Item {
-            id: "sy_mnum",
-            value: "Number of Moons",
-            fe_id: 4,
-        },
-        Item {
             id: "cb_flag",
             value: "Circumbinary Flag",
             fe_id: 5,
@@ -131,10 +126,16 @@ pub fn InputArea(
 ) -> impl IntoView {
     let initial_size = 1;
     let mut next_counter_id = initial_size;
+    let mut next_history_id = 0;
 
     let initial_inputs = (0..initial_size)
         .map(|id| (id, create_signal(Input::new())))
         .collect::<Vec<_>>();
+
+    let query_history = create_rw_signal(Vec::<(usize, QueryDb)>::new());
+
+    let (open, set_open) = create_signal(false);
+    let toggle = move |_| set_open(!open());
 
     let (input_objects, set_input_objects) = create_signal(initial_inputs);
 
@@ -167,16 +168,20 @@ pub fn InputArea(
         for (_id, (rs, _ws)) in input_objects.get() {
             inputs.push(rs.get());
         }
-        query_action.dispatch(QueryDb {
+
+        let query = QueryDb {
             query: inputs,
             anchor_id: 0i64,
             page_direction: PageKind::Next,
-        });
+        };
+
+        query_history.update(|history| history.push((next_history_id, query.clone())));
+        next_history_id += 1;
+        query_action.dispatch(query);
     };
 
     let next_page = move |_| {
         let mut inputs = Vec::<Input>::new();
-
         for (_id, (rs, _ws)) in input_objects.get() {
             inputs.push(rs.get());
         }
@@ -200,8 +205,10 @@ pub fn InputArea(
         });
     };
 
+    let fallback = move || view! { <div class="divider" on:click=toggle></div> };
+
     view! {
-        <div class="input-area">
+        <div class="input-area mt-2">
             <div class="flex justify-center input-controls">
                 <button class="btn btn-outline btn-secondary" on:click=add_input>
                     "Add Input"
@@ -215,9 +222,21 @@ pub fn InputArea(
                 }
             />
 
-            <div class="divider"></div>
+            <Show when=open fallback=fallback>
+                <div class="divider"></div>
+                <For
+                    each=query_history
+                    key=|history| history.0
+                    let:query
+                >
+                    <button class="btn btn-outline btn-primary">
+                        "Something"
+                    </button>
+                </For>
+                <div class="divider"></div>
+            </Show>
 
-            <div class="join grid grid-cols-4 submit-area gap-4">
+            <div class="join grid grid-cols-4 submit-area gap-4 m-2">
                 <button class="join-item btn btn-outline btn-success" on:click=submit_handler>
                     "Submit"
                 </button>
@@ -337,6 +356,7 @@ pub fn Dropdown(
                             set_open(false);
                             set_selected(item);
                         }
+                        class="btn btn-sm"
                     >
 
                         {move || item.value}
