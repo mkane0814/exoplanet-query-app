@@ -47,7 +47,7 @@ pub struct QueryOutput {
 }
 
 #[component]
-pub fn Home(id: usize) -> impl IntoView {
+pub fn Home() -> impl IntoView {
     let initial_fields = vec![
         Item {
             id: "pl_name",
@@ -118,7 +118,7 @@ pub fn Home(id: usize) -> impl IntoView {
         value: query_action.value().read_only(),
     });
     view! {
-        <div id=id>
+        <div>
             <InputArea query_action/>
             <OutputArea/>
         </div>

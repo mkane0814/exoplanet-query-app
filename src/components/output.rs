@@ -19,14 +19,17 @@ pub fn OutputArea() -> impl IntoView {
 pub fn OutputTable() -> impl IntoView {
     let Fields { fields } = use_context().unwrap();
     let QueryOutput { value } = use_context().unwrap();
+
     let LastId {
         last_id: _,
         set_last_id,
     } = use_context().unwrap();
+
     let FirstId {
         first_id: _,
         set_first_id,
     } = use_context().unwrap();
+
     let unwrap_data = move || match value.get() {
         Some(wrapped_data) => match wrapped_data {
             Ok(data_opt) => {
